@@ -1,0 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary or generated files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+.claude/
+
+RESULTS.md

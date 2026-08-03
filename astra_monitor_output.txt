@@ -1,0 +1,91 @@
+tcpdump: tcpdump: listening on s1-eth2listening on s1-eth1, link-type EN10MB (Ethernet), link-type EN10MB (Ethernet), snapshot length 262144 bytes
+, snapshot length 262144 bytes
+7383 packets captured
+7386 packets received by filter
+0 packets dropped by kernel
+7590 packets captured
+7751 packets received by filter
+0 packets dropped by kernel
+
+[============================================================]
+Capturing both ring paths for 30s
+[============================================================]
+
+
+--- DSCP Analysis: SHORT path (s1->s4) - URLLC should dominate ---
+  Total packets: 7562
+  DSCP 46 (EF/URLLC):   3778 pkts,   10956239 bytes
+  DSCP 34 (AF41/eMBB):     0 pkts,          0 bytes
+  DSCP 0  (BE/mMTC):    3784 pkts,     249857 bytes
+
+--- DSCP Analysis: LONG path (s1->s2) - eMBB should dominate ---
+  Total packets: 7355
+  DSCP 46 (EF/URLLC):      0 pkts,          0 bytes
+  DSCP 34 (AF41/eMBB):  3707 pkts,   10717561 bytes
+  DSCP 0  (BE/mMTC):    3648 pkts,     240881 bytes
+
+[============================================================]
+OVS Queue Statistics
+[============================================================]
+_uuid               : 22d7dbe8-bb64-47ef-b22f-f64ede2c7f00
+dscp                : []
+external_ids        : {description=URLLC_slice}
+other_config        : {max-rate="10000000", min-rate="5000000", priority="0"}
+
+_uuid               : bc53bc72-026b-44b2-a77f-4e6643ddc438
+dscp                : []
+external_ids        : {description=mMTC_slice}
+other_config        : {max-rate="2000000", min-rate="500000", priority="2"}
+
+_uuid               : 0883ac6b-c55d-4a76-b60b-128b8801a532
+dscp                : []
+external_ids        : {description=eMBB_slice}
+other_config        : {max-rate="4000000", min-rate="2000000", priority="1"}
+
+_uuid               : 44a98c94-0783-4fae-a74d-2787f2efd572
+dscp                : []
+external_ids        : {description=mMTC_slice}
+other_config        : {max-rate="2000000", min-rate="500000", priority="2"}
+
+_uuid               : af46a644-ee4f-4030-a27a-56337a6ad526
+dscp                : []
+external_ids        : {description=mMTC_spillover}
+other_config        : {max-rate="1000000", min-rate="500000", priority="2"}
+
+_uuid               : 2a1b08ec-f3ec-46a5-8b8b-4b062e68ed90
+dscp                : []
+external_ids        : {description=eMBB_slice}
+other_config        : {max-rate="4000000", min-rate="2000000", priority="1"}
+
+_uuid               : 9357d965-bd9f-4f54-9458-048cd9d6cbd7
+dscp                : []
+external_ids        : {description=URLLC_slice}
+other_config        : {max-rate="10000000", min-rate="5000000", priority="0"}
+
+_uuid               : 184e3e95-6d4f-4109-ba9f-a667a9f44486
+dscp                : []
+external_ids        : {description=mMTC_slice}
+other_config        : {max-rate="2000000", min-rate="500000", priority="2"}
+
+_uuid               : 653e69ed-97b7-4027-ba2a-8a66b034ba25
+dscp                : []
+external_ids        : {description=mMTC_spillover}
+other_config        : {max-rate="1000000", min-rate="500000", priority="2"}
+
+_uuid               : ae9f8b7e-4197-42d5-aa52-aa3214660304
+dscp                : []
+external_ids        : {description=mMTC_spillover}
+other_config        : {max-rate="1000000", min-rate="500000", priority="2"}
+
+_uuid               : 36b4e646-f0f6-44bd-bed7-041f07e272e4
+dscp                : []
+external_ids        : {description=URLLC_slice}
+other_config        : {max-rate="10000000", min-rate="5000000", priority="0"}
+
+_uuid               : 4f5872f7-ba87-472f-913c-a6f778b97531
+dscp                : []
+external_ids        : {description=eMBB_slice}
+other_config        : {max-rate="4000000", min-rate="2000000", priority="1"}
+
+
+--- Flow Stats: s1 ---
