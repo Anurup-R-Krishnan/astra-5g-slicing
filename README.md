@@ -3,15 +3,61 @@
 Mininet + Open vSwitch + RYU network slicing lab emulating a 5G core fabric.
 Three slices (eMBB / URLLC / mMTC) share one physical ring with slice-specific routing, queuing, and rate-limiting.
 
-```
-        gNodeB-A (s5)                    gNodeB-B (s6)
-   h3 h4 (eMBB)  h5 h6 (URLLC)      h7 h8 h9 (mMTC)
-         \      |      /                  \  |  /
-          s5 ----|---- s6
-           |           |
-   h1 eMBB-UPF--s2--s3--s4--URLLC-UPF h2
-              \  |  /   core ring
-               s1  (ingress / QoS enforcement point)
+```mermaid
+flowchart LR
+    %% Devices
+    h3((h3))
+    h4((h4))
+    h5((h5))
+    h6((h6))
+    h7((h7))
+    h8((h8))
+    h9((h9))
+
+    %% Edge
+    s5[s5 / gNodeB-A]
+    s6[s6 / gNodeB-B]
+
+    %% Core
+    s1{s1 Ingress}
+    s2{s2}
+    s3{s3}
+    s4{s4}
+
+    %% UPFs
+    h1[h1 / eMBB-UPF]
+    h2[h2 / URLLC-UPF]
+
+    %% Connections
+    subgraph eMBB_Slice [eMBB]
+        h3 --> s5
+        h4 --> s5
+    end
+    
+    subgraph URLLC_Slice [URLLC]
+        h5 --> s5
+        h6 --> s5
+    end
+    
+    subgraph mMTC_Slice [mMTC]
+        h7 --> s6
+        h8 --> s6
+        h9 --> s6
+    end
+
+    s5 ==>|Aggregate| s1
+    s6 ==>|Aggregate| s3
+
+    s1 -.->|eMBB LONG| s2 -.-> s3 -.-> s4
+    s1 ===|URLLC SHORT| s4
+
+    s2 --> h1
+    s4 --> h2
+
+    style eMBB_Slice fill:#e0f2fe,stroke:#0ea5e9,stroke-width:2px,color:#000
+    style URLLC_Slice fill:#fee2e2,stroke:#ef4444,stroke-width:2px,color:#000
+    style mMTC_Slice fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#000
+    style s1 fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#000
 ```
 
 ## Architecture & Slicing Design
