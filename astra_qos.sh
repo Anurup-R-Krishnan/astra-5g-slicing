@@ -61,7 +61,7 @@ sudo ovs-vsctl set port $PORT_LONG qos=@newqos -- \
 # Meter: Hard rate limit on eMBB aggregate
 # ============================================
 echo "[3] Creating meter for eMBB hard cap..."
-sudo ovs-ofctl -O OpenFlow13 add-meter s1 "meter=100,kbps,band=type=drop,rate=4000,burst_size=400"
+sudo ovs-ofctl -O OpenFlow13 add-meter s1 "meter=100,kbps,burst,band=type=drop,rate=4000,burst_size=400"
 
 # ============================================
 # Flow Rules with Queue Assignment
