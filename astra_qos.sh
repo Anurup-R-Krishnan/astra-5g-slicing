@@ -61,14 +61,7 @@ sudo ovs-vsctl set port $PORT_LONG qos=@newqos -- \
 # Meter: Hard rate limit on eMBB aggregate
 # ============================================
 echo "[3] Creating meter for eMBB hard cap..."
-curl -s -X POST -d '{
-    "dpid": 1,
-    "flags": "KBPS",
-    "meter_id": 100,
-    "bands": [
-        {"type": "DROP", "rate": 4000, "burst_size": 400}
-    ]
-}' http://localhost:8080/stats/meterentry/add
+sudo ovs-ofctl -O OpenFlow13 add-meter s1 "meter=100,kbps,band=type=drop,rate=4000,burst_size=400"
 
 # ============================================
 # Flow Rules with Queue Assignment
@@ -76,44 +69,17 @@ curl -s -X POST -d '{
 
 # --- URLLC (h5, h6 -> h2): Queue 0 on SHORT path, DSCP 46 (EF) ---
 for IP in "10.0.0.5" "10.0.0.6"; do
-curl -s -X POST -d "{
-    \"dpid\": 1,
-    \"table_id\": 0,
-    \"priority\": 500,
-    \"match\": {
-        \"eth_type\": 2048,
-        \"ipv4_src\": \"$IP\"
-    },
-    \"actions\": [
-        {\"type\": \"SET_FIELD\", \"field\": \"ip_dscp\", \"value\": 46},
-        {\"type\": \"SET_QUEUE\", \"queue_id\": 0},
-        {\"type\": \"OUTPUT\", \"port\": 2}
-    ]
-}" http://localhost:8080/stats/flowentry/add
+    sudo ovs-ofctl -O OpenFlow13 add-flow s1 "priority=500,ip,nw_src=$IP actions=set_field:46->ip_dscp,set_queue:0,output:2"
 done
 
 # --- eMBB (h3, h4 -> h1): Queue 0 on LONG path, meter 100, DSCP 34 (AF41) ---
-# NOTE: ofctl_rest cannot parse OF1.3 'instructions' (meter) JSON, so we insert
-#       the meter-bearing eMBB flows directly with ovs-ofctl.
 for IP in "10.0.0.3" "10.0.0.4"; do
-sudo ovs-ofctl -O OpenFlow13 add-flow s1 "priority=400,ip,nw_src=$IP actions=meter:100,set_field:34->ip_dscp,set_queue:0,output:1"
+    sudo ovs-ofctl -O OpenFlow13 add-flow s1 "priority=400,ip,nw_src=$IP actions=meter:100,set_field:34->ip_dscp,set_queue:0,output:1"
 done
 
 # --- mMTC (h7, h8, h9): Queue 1 on both paths, DSCP 0 ---
 for IP in "10.0.0.7" "10.0.0.8" "10.0.0.9"; do
-curl -s -X POST -d "{
-    \"dpid\": 1,
-    \"table_id\": 0,
-    \"priority\": 300,
-    \"match\": {
-        \"eth_type\": 2048,
-        \"ipv4_src\": \"$IP\"
-    },
-    \"actions\": [
-        {\"type\": \"SET_QUEUE\", \"queue_id\": 1},
-        {\"type\": \"OUTPUT\", \"port\": \"NORMAL\"}
-    ]
-}" http://localhost:8080/stats/flowentry/add
+    sudo ovs-ofctl -O OpenFlow13 add-flow s1 "priority=300,ip,nw_src=$IP actions=set_queue:1,normal"
 done
 
 echo "[4] QoS deployment complete."
@@ -125,7 +91,8 @@ echo "--- Queues ---"
 sudo ovs-vsctl list Queue
 echo ""
 echo "--- Meters ---"
-curl -s http://localhost:8080/stats/meter/1 | python3 -m json.tool
+sudo ovs-ofctl -O OpenFlow13 dump-meters s1
 echo ""
 echo "--- Flows on s1 ---"
-curl -s http://localhost:8080/stats/flow/1 | python3 -m json.tool | head -80
+sudo ovs-ofctl -O OpenFlow13 dump-flows s1 | grep "nw_src"
+

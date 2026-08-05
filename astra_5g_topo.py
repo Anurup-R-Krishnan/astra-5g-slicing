@@ -17,6 +17,10 @@ from mininet.node import OVSSwitch, RemoteController
 from mininet.cli import CLI
 from mininet.link import TCLink
 from mininet.log import setLogLevel, info
+import os
+
+# Fix broken local env wrappers swallowing mnexec args
+os.environ['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 
 class Astra5GTopo(Topo):
@@ -49,13 +53,13 @@ class Astra5GTopo(Topo):
         s6 = self.addSwitch('s6', dpid='0000000000000006', protocols='OpenFlow13')  # gNodeB-B
 
         # --- Core Ring Links (10 Mbps in lab, 10Gbps in prod) ---
-        self.addLink(s1, s2, bw=10, delay='2ms')
+        self.addLink(s1, s2, port1=1, bw=10, delay='2ms')   # s1-eth1 (LONG path)
         self.addLink(s2, s3, bw=10, delay='2ms')
         self.addLink(s3, s4, bw=10, delay='2ms')
-        self.addLink(s4, s1, bw=10, delay='2ms')   # Ring closure
+        self.addLink(s4, s1, port2=2, bw=10, delay='2ms')   # s1-eth2 (SHORT path)
 
         # --- Edge Uplinks ---
-        self.addLink(s5, s1, bw=10, delay='1ms')   # gNodeB-A -> s1
+        self.addLink(s5, s1, port2=3, bw=10, delay='1ms')   # s1-eth3 (gNodeB-A -> s1)
         self.addLink(s6, s3, bw=10, delay='1ms')   # gNodeB-B -> s3
 
         # --- Server Attachments ---
@@ -85,6 +89,10 @@ def run():
         autoSetMacs=True
     )
     net.start()
+
+    info("\n*** Enabling STP on all switches to prevent ring loops...\n")
+    for sw in net.switches:
+        sw.cmd(f'ovs-vsctl set bridge {sw.name} stp_enable=true')
 
     info("\n*** Astra 5G Core Fabric is LIVE\n")
     info("*** Verifying all 6 switches registered with RYU...\n")

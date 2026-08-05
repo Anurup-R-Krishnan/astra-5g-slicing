@@ -81,22 +81,6 @@ flowchart LR
 
 RYU is installed in a virtualenv (`/home/anuruprkris/Project/ryu-env`, Python 3.9.25). Mininet lives in system python (`/usr/bin/python`); it is NOT in the venv.
 
-## Troubleshooting & Critical Gotchas
-
-> [!WARNING]
-> **Broken `env` wrapper**: `/home/anuruprkris/.local/bin/env` shadows coreutils `env` and swallows arguments, which breaks Mininet's host shells. Always invoke Mininet through `/usr/bin/env` explicitly:
-> `/usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /usr/bin/python astra_5g_topo.py`
-
-> [!CAUTION]
-> **STP Ring Loop**: The ring is a switching loop. If it floods (watch `/tmp/ryu.log` for a packet-in storm), enable STP on every bridge:
-> `for s in s1 s2 s3 s4 s5 s6; do ovs-vsctl set bridge $s stp_enable=true; done`
-
-> [!IMPORTANT]
-> **Port Map**: s1 has only THREE links — `s1-eth1` (ofport 1, ->s2, LONG/eMBB path), `s1-eth2` (ofport 2, ->s4, SHORT/URLLC path), `s1-eth3` (->s5).
-
-> [!NOTE]
-> **RYU ofctl_rest**: Cannot parse OF1.3 `instructions`/`meter` JSON. Meter-bearing eMBB flows must be inserted with `ovs-ofctl`.
-
 ## Project Files
 
 | File | Role |
@@ -122,7 +106,7 @@ All commands run from `/home/anuruprkris/Project/sdn` as root.
 2. **Start Mininet** (detached, FIFO-driven CLI)
    ```bash
    rm -f /tmp/mn_fifo && mkfifo /tmp/mn_fifo
-   setsid nohup /usr/bin/env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /usr/bin/python astra_5g_topo.py < /tmp/mn_fifo > /tmp/mn.log 2>&1 & disown
+   setsid nohup python astra_5g_topo.py < /tmp/mn_fifo > /tmp/mn.log 2>&1 & disown
    setsid bash -c 'exec 3>/tmp/mn_fifo; sleep 7200' >/dev/null 2>&1 & disown
    ```
 3. **Deploy slice QoS**
