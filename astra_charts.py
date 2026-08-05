@@ -44,8 +44,12 @@ def draw_topology():
                            node_color='#e67e22', node_size=1200, ax=ax)
     nx.draw_networkx_nodes(G, pos, nodelist=['h1', 'h2'],
                            node_color='#16a085', node_size=800, ax=ax)
-    nx.draw_networkx_nodes(G, pos, nodelist=['h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9'],
+    nx.draw_networkx_nodes(G, pos, nodelist=['h3', 'h4'],
                            node_color='#8e44ad', node_size=500, ax=ax)
+    nx.draw_networkx_nodes(G, pos, nodelist=['h5', 'h6'],
+                           node_color='#c0392b', node_size=500, ax=ax)
+    nx.draw_networkx_nodes(G, pos, nodelist=['h7', 'h8', 'h9'],
+                           node_color='#f39c12', node_size=500, ax=ax)
 
     nx.draw_networkx_edges(G, pos, edgelist=ring, width=4.0, edge_color='#2c3e50', ax=ax)
     nx.draw_networkx_edges(G, pos, edgelist=edge, width=2.5, edge_color='#7f8c8d', ax=ax)
@@ -54,12 +58,7 @@ def draw_topology():
 
     nx.draw_networkx_labels(G, pos, font_size=9, font_color='white', font_weight='bold', ax=ax)
 
-    slice_colors = {'h3': '#8e44ad', 'h4': '#8e44ad', 'h5': '#c0392b', 'h6': '#c0392b',
-                    'h7': '#f39c12', 'h8': '#f39c12', 'h9': '#f39c12'}
-    for h, (x, y) in hpos.items():
-        if h not in slice_colors:
-            continue
-        ax.plot(x + 0.18, y + 0.15, marker='o', color=slice_colors[h], markersize=8, ls='')
+
 
     ax.text(0, 2.42, 'gNodeB-A', fontsize=10, ha='center', style='italic')
     ax.text(2, -4.42, 'gNodeB-B', fontsize=10, ha='center', style='italic')
