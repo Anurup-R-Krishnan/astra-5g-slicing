@@ -68,6 +68,9 @@ flowchart LR
   - LONG `s5->s1->s2->s3->s4` (eMBB, via `s1-eth1`)
 - **Hosts / slices**: h3,h4 -> eMBB; h5,h6 -> URLLC; h7,h8,h9 -> mMTC; h1 = eMBB UPF (s2); h2 = URLLC UPF (s4)
 
+## Known Scope
+QoS enforcement in this lab is uplink-only (UE→UPF); downlink is out of scope.
+
 ## Prerequisites & Installation (Arch Linux)
 
 | Package | Purpose | Install |
@@ -89,7 +92,7 @@ RYU is installed in a virtualenv (`/home/anuruprkris/Project/ryu-env`, Python 3.
 | `astra_controller.py` | RYU app: table-miss, ARP flood, MAC learning, slice-aware reactive priorities. |
 | `astra_qos.sh` | Full QoS deployment: HTB queues, meter 100, DSCP/set-queue flows. |
 | `astra_monitor.py` | Captures `s1-eth2`/`s1-eth1` with tcpdump, DSCP analysis with tshark, OVS/RYU stats. |
-| `astra_perf.py` | 3-phase benchmark (baseline / rate-limited / priority QoS) via host namespaces. |
+| `astra_perf.py` | 4-phase benchmark (baseline / rate-limited / priority QoS / full contention) via host namespaces. |
 | `astra_charts.py` | Generates topology + performance PNGs. |
 | `astra_results.json` | Stores the throughput and latency results from the performance benchmark. |
 | `astra_monitor_output.txt`| Captures the DSCP monitoring stats (Short path vs Long path). |
@@ -133,9 +136,9 @@ All commands run from `/home/anuruprkris/Project/sdn` as root.
 
 | Metric | Baseline | Rate-limited | Priority QoS |
 |---|---|---|---|
-| URLLC throughput | 1.36 Mbps | 8.28 Mbps | 5.39 Mbps |
-| URLLC avg latency | 2133.9 ms | 117.9 ms | 51.7 ms |
-| URLLC jitter | 237.1 ms | 167.0 ms | 108.8 ms |
-| eMBB throughput | 9.50 Mbps | 2.61 Mbps | 3.29 Mbps |
+| URLLC throughput | 1.45 Mbps | 8.18 Mbps | 5.40 Mbps |
+| URLLC avg latency | 2069.7 ms | 135.0 ms | 46.7 ms |
+| URLLC jitter | 289.4 ms | 175.6 ms | 101.6 ms |
+| eMBB throughput | 9.52 Mbps | 2.62 Mbps | 3.30 Mbps |
 
-*Note: URLLC latency improved ~41x from Baseline to Priority QoS.*
+*Note: URLLC latency improved ~44x from Baseline to Priority QoS.*

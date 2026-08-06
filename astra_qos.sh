@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================
 # Astra Mobility 5G Slice QoS Deployment
-# Bottleneck: s1-eth1 (s1->s2) and s1-eth4 (s1->s4)
+# Bottleneck: s1-eth1 (s1->s2, LONG/eMBB) and s1-eth2 (s1->s4, SHORT/URLLC)
 # ============================================
 
 set -e
@@ -61,7 +61,34 @@ sudo ovs-vsctl set port $PORT_LONG qos=@newqos -- \
 # Meter: Hard rate limit on eMBB aggregate
 # ============================================
 echo "[3] Creating meter for eMBB hard cap..."
+sudo ovs-ofctl -O OpenFlow13 del-meters s1 2>/dev/null || true
 sudo ovs-ofctl -O OpenFlow13 add-meter s1 "meter=100,kbps,burst,band=type=drop,rate=4000,burst_size=400"
+
+# ============================================
+# mMTC ingress QoS at s3 (guarantees enforcement
+# regardless of which ring link STP blocks)
+# ============================================
+echo "[3.5] Configuring mMTC QoS directly on s3..."
+PORT_S3_TO_S2="s3-eth1"
+PORT_S3_TO_S4="s3-eth2"
+
+for PORT in $PORT_S3_TO_S2 $PORT_S3_TO_S4; do
+  sudo ovs-vsctl clear port $PORT qos 2>/dev/null || true
+  sudo ovs-vsctl set port $PORT qos=@mmtcqos -- \
+    --id=@mmtcqos create QoS type=linux-htb \
+    other-config:max-rate=10000000 \
+    queues:0=@mmtc_s3 -- \
+    --id=@mmtc_s3 create Queue other-config:min-rate=500000 \
+                               other-config:max-rate=2000000 \
+                               other-config:priority=2 \
+                               external-ids:description="mMTC_slice_s3"
+done
+
+for IP in "10.0.0.7" "10.0.0.8" "10.0.0.9"; do
+  sudo ovs-ofctl -O OpenFlow13 add-flow s3 \
+    "priority=300,ip,nw_src=$IP actions=set_field:0->ip_dscp,set_queue:0,normal"
+done
+
 
 # ============================================
 # Flow Rules with Queue Assignment

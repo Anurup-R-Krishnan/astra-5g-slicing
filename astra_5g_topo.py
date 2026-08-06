@@ -19,7 +19,6 @@ from mininet.link import TCLink
 from mininet.log import setLogLevel, info
 import os
 
-# Fix broken local env wrappers swallowing mnexec args
 os.environ['PATH'] = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 
@@ -93,16 +92,19 @@ def run():
     info("\n*** Enabling STP on all switches to prevent ring loops...\n")
     for sw in net.switches:
         sw.cmd(f'ovs-vsctl set bridge {sw.name} stp_enable=true')
-
-    info("\n*** Astra 5G Core Fabric is LIVE\n")
-    info("*** Verifying all 6 switches registered with RYU...\n")
-    net.pingAll()
+    # Force s1 to be the root bridge so its links to the ring (s1-eth1, s1-eth2) are never blocked
+    net.get('s1').cmd('ovs-vsctl set bridge s1 other_config:stp-priority=4096')
 
     info("\n*** DPID check:\n")
     for sw in net.switches:
         info(f"  {sw.name}: {sw.dpctl('get-config')}\n")
 
-    CLI(net)
+    import time
+    try:
+        while True:
+            time.sleep(10)
+    except KeyboardInterrupt:
+        pass
     net.stop()
 
 

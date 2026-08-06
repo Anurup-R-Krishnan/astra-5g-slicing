@@ -90,46 +90,63 @@ def draw_performance():
     with open('/tmp/astra_results.json') as f:
         r = json.load(f)
 
-    phases = ['Baseline', 'Rate-Limited', 'Priority QoS']
-    urllc_t = [r[p]['urllc_t'] for p in ('baseline', 'rate_limited', 'priority_qos')]
-    embb_t = [r[p]['embb_t'] for p in ('baseline', 'rate_limited', 'priority_qos')]
-    urllc_l = [r[p]['urllc_l']['avg'] for p in ('baseline', 'rate_limited', 'priority_qos')]
-    urllc_j = [r[p]['urllc_l']['jitter'] for p in ('baseline', 'rate_limited', 'priority_qos')]
+    phase_keys = ['baseline', 'rate_limited', 'priority_qos', 'full_contention']
+    phases = ['No QoS', 'Rate-Limited', 'Priority QoS', 'Full\nContention']
+    
+    urllc_t = [r[p]['urllc_t_mean'] for p in phase_keys]
+    urllc_t_err = [r[p]['urllc_t_std'] for p in phase_keys]
+    
+    embb_t = [r[p]['embb_t_mean'] for p in phase_keys]
+    embb_t_err = [r[p]['embb_t_std'] for p in phase_keys]
+    
+    mmtc_t = [r[p]['mmtc_t_mean'] for p in phase_keys]
+    mmtc_t_err = [r[p]['mmtc_t_std'] for p in phase_keys]
+    
+    urllc_l = [r[p]['urllc_l_avg_mean'] for p in phase_keys]
+    urllc_l_err = [r[p]['urllc_l_avg_std'] for p in phase_keys]
+    
+    urllc_j = [r[p]['urllc_l_jitter_mean'] for p in phase_keys]
+    urllc_j_err = [r[p]['urllc_l_jitter_std'] for p in phase_keys]
+    
+    mmtc_loss = [r[p]['mmtc_loss_mean'] for p in phase_keys]
+    mmtc_loss_err = [r[p]['mmtc_loss_std'] for p in phase_keys]
 
-    colors = ['#bdc3c7', '#f39c12', '#27ae60']
+    colors = ['#bdc3c7', '#f39c12', '#27ae60', '#e74c3c']
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+    fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 
+    # 1. Throughput
     ax = axes[0]
     x = range(len(phases))
-    w = 0.38
-    ax.bar([i - w / 2 for i in x], urllc_t, width=w, label='URLLC', color='#c0392b')
-    ax.bar([i + w / 2 for i in x], embb_t, width=w, label='eMBB', color='#8e44ad')
+    w = 0.25
+    ax.bar([i - w for i in x], urllc_t, width=w, label='URLLC', color='#c0392b', yerr=urllc_t_err, capsize=4)
+    ax.bar(list(x), embb_t, width=w, label='eMBB', color='#8e44ad', yerr=embb_t_err, capsize=4)
+    ax.bar([i + w for i in x], mmtc_t, width=w, label='mMTC', color='#f39c12', yerr=mmtc_t_err, capsize=4)
     ax.set_title('Slice Throughput (Mbps)')
     ax.set_xticks(list(x)); ax.set_xticklabels(phases)
-    ax.set_ylabel('Mbps'); ax.legend()
-    for i, (u, e) in enumerate(zip(urllc_t, embb_t)):
-        ax.text(i - w / 2, u + 0.2, f'{u:.1f}', ha='center', fontsize=9)
-        ax.text(i + w / 2, e + 0.2, f'{e:.1f}', ha='center', fontsize=9)
+    ax.set_ylabel('Mbps'); ax.legend(loc='upper right', fontsize=8)
 
+    # 2. Latency
     ax = axes[1]
-    ax.bar(x, urllc_l, color=colors)
+    ax.bar(x, urllc_l, color=colors, yerr=urllc_l_err, capsize=4)
     ax.set_title('URLLC Avg Latency (ms)')
     ax.set_xticks(list(x)); ax.set_xticklabels(phases)
     ax.set_ylabel('ms')
     ax.set_yscale('log')
-    for i, v in enumerate(urllc_l):
-        ax.text(i, v * 1.15, f'{v:.0f}', ha='center', fontsize=10)
-    ax.text(0.5, 0.6, '41x', transform=ax.transAxes, fontsize=20,
-            color='#27ae60', fontweight='bold', ha='center')
-
+    
+    # 3. Jitter
     ax = axes[2]
-    ax.bar(x, urllc_j, color=colors)
+    ax.bar(x, urllc_j, color=colors, yerr=urllc_j_err, capsize=4)
     ax.set_title('URLLC Jitter (ms)')
     ax.set_xticks(list(x)); ax.set_xticklabels(phases)
     ax.set_ylabel('ms')
-    for i, v in enumerate(urllc_j):
-        ax.text(i, v + 5, f'{v:.0f}', ha='center', fontsize=10)
+    
+    # 4. mMTC Loss
+    ax = axes[3]
+    ax.bar(x, mmtc_loss, color=colors, yerr=mmtc_loss_err, capsize=4)
+    ax.set_title('mMTC Packet Loss (%)')
+    ax.set_xticks(list(x)); ax.set_xticklabels(phases)
+    ax.set_ylabel('% Loss')
 
     fig.suptitle('Astra Mobility 5G — QoS Impact on Slice Performance', fontsize=15)
     plt.tight_layout(rect=[0, 0, 1, 0.94])
@@ -137,6 +154,26 @@ def draw_performance():
     plt.close()
     print('wrote astra_5g_performance.png')
 
+    # Headline Chart
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.bar(x, urllc_l, color=colors, yerr=urllc_l_err, capsize=4)
+    ax.set_title('URLLC Latency Under Congestion', fontsize=16)
+    ax.set_xticks(list(x)); ax.set_xticklabels(phases, fontsize=12)
+    ax.set_ylabel('Latency (ms) - Log Scale', fontsize=12)
+    ax.set_yscale('log')
+    
+    for i, v in enumerate(urllc_l):
+        ax.text(i, v * 1.15, f'{v:.0f}ms', ha='center', fontsize=12)
+        
+    ratio = urllc_l[0] / urllc_l[3] if urllc_l[3] > 0 else 0
+    ax.text(0.5, 0.6, f'{ratio:.0f}x Improvement', transform=ax.transAxes, fontsize=24,
+            color='#27ae60', fontweight='bold', ha='center',
+            bbox=dict(facecolor='white', alpha=0.8, edgecolor='none', pad=5))
+            
+    plt.tight_layout()
+    plt.savefig(OUT + '/astra_5g_urllc_headline.png', dpi=150)
+    plt.close()
+    print('wrote astra_5g_urllc_headline.png')
 
 if __name__ == '__main__':
     draw_topology()
