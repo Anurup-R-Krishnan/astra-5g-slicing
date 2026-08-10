@@ -104,13 +104,13 @@ All commands run from `/home/anuruprkris/Project/sdn` as root.
 1. **Start the RYU controller** (port 6653, REST on 8080)
    ```bash
    source ../ryu-env/bin/activate
-   setsid nohup ryu-manager --verbose astra_controller.py ryu.app.ofctl_rest > /tmp/ryu.log 2>&1 < /dev/null & disown
+   setsid nohup ryu-manager --verbose astra_controller.py ryu.app.ofctl_rest > ryu.log 2>&1 < /dev/null & disown
    ```
 2. **Start Mininet** (detached, FIFO-driven CLI)
    ```bash
-   rm -f /tmp/mn_fifo && mkfifo /tmp/mn_fifo
-   setsid nohup python astra_5g_topo.py < /tmp/mn_fifo > /tmp/mn.log 2>&1 & disown
-   setsid bash -c 'exec 3>/tmp/mn_fifo; sleep 7200' >/dev/null 2>&1 & disown
+   rm -f mn_fifo && mkfifo mn_fifo
+   setsid nohup python astra_5g_topo.py < mn_fifo > mn.log 2>&1 & disown
+   setsid bash -c 'exec 3>mn_fifo; sleep 7200' >/dev/null 2>&1 & disown
    ```
 3. **Deploy slice QoS**
    ```bash

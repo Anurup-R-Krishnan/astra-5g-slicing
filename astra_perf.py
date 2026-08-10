@@ -247,6 +247,6 @@ if __name__ == '__main__':
         
         final_results[phase] = aggregate_results(samples)
         
-    with open('/tmp/astra_results.json', 'w') as f:
+    with open('astra_results.json', 'w') as f:
         json.dump(final_results, f, indent=2)
-    print("\nResults saved to /tmp/astra_results.json")
+    print("\nResults saved to astra_results.json")

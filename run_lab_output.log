@@ -187,6 +187,6 @@ URLLC (Car) Latency         2069.73         135.03          46.67
 URLLC (Car) Jitter           289.40         175.58         101.56
 ======================================================================
 
-Results saved to /tmp/astra_results.json
+Results saved to astra_results.json
 + echo '=== Lab Completed Successfully! ==='
 === Lab Completed Successfully! ===

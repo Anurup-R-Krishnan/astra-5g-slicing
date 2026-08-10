@@ -11,8 +11,8 @@ import json
 
 class AstraMonitor:
     def __init__(self):
-        self.pcap_short = "/tmp/astra_short_path.pcap"   # s1-eth2: s1->s4
-        self.pcap_long = "/tmp/astra_long_path.pcap"     # s1-eth1: s1->s2
+        self.pcap_short = "astra_short_path.pcap"   # s1-eth2: s1->s4
+        self.pcap_long = "astra_long_path.pcap"     # s1-eth1: s1->s2
 
     def start_captures(self, duration=30):
         print(f"\n[{'='*60}]")

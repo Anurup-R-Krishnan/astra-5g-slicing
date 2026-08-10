@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Astra Mobility 5G SDN Controller
-Handles: GTP-TEID slice classification, shortest-path URLLC routing,
-         load-balanced eMBB, reactive MAC learning, emergency reroute.
+Handles: GTP-TEID slice classification, shortest-path URLLC routing, load-balanced eMBB, reactive MAC learning, emergency reroute.
 """
 
 from ryu.base import app_manager

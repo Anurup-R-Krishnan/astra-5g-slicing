@@ -87,7 +87,7 @@ def draw_topology():
 
 
 def draw_performance():
-    with open('/tmp/astra_results.json') as f:
+    with open('astra_results.json') as f:
         r = json.load(f)
 
     phase_keys = ['baseline', 'rate_limited', 'priority_qos', 'full_contention']
