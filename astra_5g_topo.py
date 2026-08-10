@@ -62,19 +62,19 @@ class Astra5GTopo(Topo):
         self.addLink(s6, s3, bw=10, delay='1ms')   # gNodeB-B -> s3
 
         # --- Server Attachments ---
-        self.addLink(h1, s2, bw=100, delay='1ms')   # eMBB UPF
-        self.addLink(h2, s4, bw=100, delay='1ms')   # URLLC UPF
+        self.addLink(h1, s2, delay='1ms')   # eMBB UPF
+        self.addLink(h2, s4, delay='1ms')   # URLLC UPF
 
         # --- gNodeB-A Devices ---
-        self.addLink(h3, s5, bw=100, delay='1ms')   # Phone A
-        self.addLink(h4, s5, bw=100, delay='1ms')   # Phone B
-        self.addLink(h5, s5, bw=100, delay='1ms')   # Car A
-        self.addLink(h6, s5, bw=100, delay='1ms')   # Car B
+        self.addLink(h3, s5, delay='1ms')   # Phone A
+        self.addLink(h4, s5, delay='1ms')   # Phone B
+        self.addLink(h5, s5, delay='1ms')   # Car A
+        self.addLink(h6, s5, delay='1ms')   # Car B
 
         # --- gNodeB-B Devices ---
-        self.addLink(h7, s6, bw=100, delay='1ms')   # Meter A
-        self.addLink(h8, s6, bw=100, delay='1ms')   # Meter B
-        self.addLink(h9, s6, bw=100, delay='1ms')   # Toll gate
+        self.addLink(h7, s6, delay='1ms')   # Meter A
+        self.addLink(h8, s6, delay='1ms')   # Meter B
+        self.addLink(h9, s6, delay='1ms')   # Toll gate
 
 
 def run():
@@ -97,7 +97,7 @@ def run():
 
     info("\n*** DPID check:\n")
     for sw in net.switches:
-        info(f"  {sw.name}: {sw.dpctl('get-config')}\n")
+        info(f"  {sw.name}: {sw.dpid}\n")
 
     import time
     try:
