@@ -99,12 +99,8 @@ def run():
     for sw in net.switches:
         info(f"  {sw.name}: {sw.dpid}\n")
 
-    import time
-    try:
-        while True:
-            time.sleep(10)
-    except KeyboardInterrupt:
-        pass
+    info("\n*** Starting CLI:\n")
+    CLI(net)
     net.stop()
 
 
