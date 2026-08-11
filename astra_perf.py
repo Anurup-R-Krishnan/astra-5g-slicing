@@ -45,7 +45,7 @@ class AstraPerfTest:
             pid = host_pid(client_host)
             if not pid: return {'mbps': 0.0, 'retrans': 0, 'loss': 0.0}
             r = subprocess.run(['mnexec', '-a', pid, '--'] + cmd,
-                               capture_output=True, text=True, timeout=15)
+                               capture_output=True, text=True, timeout=30)
             d = json.loads(r.stdout)
             if udp:
                 mbps = d['end']['sum']['bits_per_second'] / 1e6
@@ -111,6 +111,8 @@ class AstraPerfTest:
         for port in ('s1-eth1', 's1-eth2', 's3-eth1', 's3-eth2'):
             subprocess.run(['sudo', 'ovs-vsctl', '--if-exists', 'clear', 'port', port, 'qos'],
                            stdout=subprocess.DEVNULL)
+        subprocess.run(['sudo', 'ovs-vsctl', '--all', 'destroy', 'QoS'], stdout=subprocess.DEVNULL)
+        subprocess.run(['sudo', 'ovs-vsctl', '--all', 'destroy', 'Queue'], stdout=subprocess.DEVNULL)
         subprocess.run(['sudo', 'ovs-ofctl', '-O', 'OpenFlow13', 'del-flows',
                         's3', 'priority=300'],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -173,7 +175,7 @@ class AstraPerfTest:
 
         if mmtc_proc:
             try:
-                mmtc_out, mmtc_err = mmtc_proc.communicate(timeout=15)
+                mmtc_out, mmtc_err = mmtc_proc.communicate(timeout=30)
                 d = json.loads(mmtc_out)
                 r_mmtc = {
                     'mbps': d['end']['sum']['bits_per_second'] / 1e6,

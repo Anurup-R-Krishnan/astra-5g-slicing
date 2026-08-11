@@ -18,6 +18,8 @@ PORT_LONG="s1-eth1"    # s1 -> s2 (eMBB load-balanced path)
 # Clear old QoS
 sudo ovs-vsctl clear port $PORT_SHORT qos 2>/dev/null || true
 sudo ovs-vsctl clear port $PORT_LONG qos 2>/dev/null || true
+sudo ovs-vsctl --all destroy QoS 2>/dev/null || true
+sudo ovs-vsctl --all destroy Queue 2>/dev/null || true
 
 # ============================================
 # HTB Queues on SHORT path (s1->s4)
