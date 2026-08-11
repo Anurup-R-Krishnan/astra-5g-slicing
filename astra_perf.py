@@ -10,12 +10,28 @@ import json
 import time
 import statistics
 import os
+import sys
+
+
+def print(*args, **kwargs):
+    sep = kwargs.get('sep', ' ')
+    end = kwargs.get('end', '\n')
+    text = sep.join(map(str, args)) + end
+    text = text.replace('\r\n', '\n').replace('\n', '\r\n')
+    sys.stdout.write(text)
+    sys.stdout.flush()
 
 
 def host_pid(host):
     try:
-        out = subprocess.run(['pgrep', '-f', 'mininet:' + host],
+        out = subprocess.run(['pgrep', '-f', f'mininet:{host}$'],
                              capture_output=True, text=True).stdout.strip()
+        if not out:
+            out = subprocess.run(['pgrep', '-f', f'mininet:{host} '],
+                                 capture_output=True, text=True).stdout.strip()
+        if not out:
+            out = subprocess.run(['pgrep', '-f', f'mininet:{host}'],
+                                 capture_output=True, text=True).stdout.strip()
         return out.split()[0] if out else None
     except Exception:
         return None
@@ -26,8 +42,10 @@ def host_cmd(host, *args):
     pid = host_pid(host)
     if not pid:
         return subprocess.run(args, capture_output=True, text=True)
-    return subprocess.run(['mnexec', '-a', pid, '--'] + list(args),
-                          capture_output=True, text=True, timeout=120)
+    res = subprocess.run(['mnexec', '-a', pid, '--'] + list(args),
+                         capture_output=True, text=True, timeout=120)
+    os.system('stty sane 2>/dev/null')
+    return res
 
 
 class AstraPerfTest:
@@ -35,17 +53,19 @@ class AstraPerfTest:
         pass
 
     def iperf3(self, client_host, server_host, port, duration=10, bandwidth='100M', udp=False):
-        cmd = ['iperf3', '-c', '10.0.0.' + server_host.strip('h'),
+        cmd = ['iperf3', '-4', '-c', '10.0.0.' + server_host.strip('h'),
                '-p', str(port), '-t', str(duration), '-J']
         if bandwidth:
             cmd.extend(['-b', bandwidth])
         if udp:
             cmd.append('-u')
+        r = None
         try:
             pid = host_pid(client_host)
             if not pid: return {'mbps': 0.0, 'retrans': 0, 'loss': 0.0}
             r = subprocess.run(['mnexec', '-a', pid, '--'] + cmd,
                                capture_output=True, text=True, timeout=15)
+            os.system('stty sane 2>/dev/null')
             d = json.loads(r.stdout)
             if udp:
                 mbps = d['end']['sum']['bits_per_second'] / 1e6
@@ -56,7 +76,9 @@ class AstraPerfTest:
                 retrans = d['end']['sum_sent'].get('retransmits', 0)
                 return {'mbps': mbps, 'retrans': retrans}
         except Exception as e:
-            print(f"[WARN] iperf3 {client_host}->{server_host} failed: {e}")
+            err_msg = r.stderr.strip() if r and hasattr(r, 'stderr') else ''
+            out_msg = r.stdout.strip() if r and hasattr(r, 'stdout') else ''
+            print(f"[WARN] iperf3 {client_host}->{server_host} failed: {e} | err={repr(err_msg)} out={repr(out_msg)}")
             return {'mbps': 0.0, 'retrans': 0, 'loss': 0.0}
 
     def ping(self, from_host, target, count=20):
@@ -83,19 +105,21 @@ class AstraPerfTest:
             return {'avg': 0.0, 'jitter': 0.0, 'min': 0.0, 'max': 0.0}
 
     def start_servers(self):
+        self.stop_servers()
         # measurement ports 5001/5002/5005 + dedicated saturator ports 5003/5004/5006
         for host, port in [('h1', 5001), ('h2', 5002),
                            ('h1', 5003), ('h2', 5004),
                            ('h2', 5005), ('h2', 5006)]:
             pid = host_pid(host)
             if pid:
-                subprocess.Popen(['mnexec', '-a', pid, '--', 'iperf3', '-s',
-                                  '-p', str(port), '-D'],
+                subprocess.Popen(['mnexec', '-a', pid, '--', 'iperf3', '-4', '-s',
+                                  '-p', str(port), '--pidfile', f'/tmp/iperf3_{port}.pid', '-D'],
                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
 
     def stop_servers(self):
-        subprocess.run(['sudo', 'pkill', '-f', 'iperf3 -s'])
+        subprocess.run(['sudo', 'pkill', '-9', '-f', 'iperf3'],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(1)
 
     def qos_off(self):
@@ -140,7 +164,7 @@ class AstraPerfTest:
     def saturate(self, client_host, server_ip, port, bandwidth, duration=25, udp=False):
         pid = host_pid(client_host)
         if not pid: return
-        cmd = ['mnexec', '-a', pid, '--', 'iperf3',
+        cmd = ['mnexec', '-a', pid, '--', 'iperf3', '-4',
                '-c', server_ip, '-p', str(port), '-t', str(duration),
                '-b', bandwidth]
         if udp:
@@ -175,13 +199,14 @@ class AstraPerfTest:
             try:
                 mmtc_out, mmtc_err = mmtc_proc.communicate(timeout=15)
                 d = json.loads(mmtc_out)
+                end_sec = d.get('end', {})
+                sum_sec = end_sec.get('sum') or end_sec.get('sum_received') or {}
                 r_mmtc = {
-                    'mbps': d['end']['sum']['bits_per_second'] / 1e6,
-                    'loss': d['end']['sum'].get('lost_percent', 0.0)
+                    'mbps': sum_sec.get('bits_per_second', 0.0) / 1e6,
+                    'loss': sum_sec.get('lost_percent', 0.0)
                 }
             except Exception as e:
                 mmtc_proc.kill()
-                print(f"[WARN] iperf3 mMTC h9->h2 failed: {e}")
                 r_mmtc = {'mbps': 0.0, 'loss': 0.0}
         else:
             r_mmtc = {'mbps': 0.0, 'loss': 0.0}

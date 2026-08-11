@@ -95,16 +95,8 @@ def run():
     # Force s1 to be the root bridge so its links to the ring (s1-eth1, s1-eth2) are never blocked
     net.get('s1').cmd('ovs-vsctl set bridge s1 other_config:stp-priority=4096')
 
-    info("\n*** DPID check:\n")
-    for sw in net.switches:
-        info(f"  {sw.name}: {sw.dpctl('get-config')}\n")
-
-    import time
-    try:
-        while True:
-            time.sleep(10)
-    except KeyboardInterrupt:
-        pass
+    info("\n*** Astra 5G Core Fabric is LIVE ***\n")
+    CLI(net)
     net.stop()
 
 
