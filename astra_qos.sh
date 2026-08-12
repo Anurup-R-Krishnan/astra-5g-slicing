@@ -15,9 +15,11 @@ echo "=== Astra 5G Slice QoS Setup ==="
 PORT_SHORT="s1-eth2"   # s1 -> s4 (URLLC fast path)
 PORT_LONG="s1-eth1"    # s1 -> s2 (eMBB load-balanced path)
 
-# Clear old QoS
+# Clear old QoS and Queues
 sudo ovs-vsctl clear port $PORT_SHORT qos 2>/dev/null || true
 sudo ovs-vsctl clear port $PORT_LONG qos 2>/dev/null || true
+sudo ovs-vsctl --all destroy qos 2>/dev/null || true
+sudo ovs-vsctl --all destroy queue 2>/dev/null || true
 
 # ============================================
 # HTB Queues on SHORT path (s1->s4)
@@ -94,6 +96,11 @@ done
 # Flow Rules with Queue Assignment
 # ============================================
 
+# --- Slice Isolation: Block eMBB (h3, h4) from accessing URLLC UPF (h2) ---
+for IP in "10.0.0.3" "10.0.0.4"; do
+    sudo ovs-ofctl -O OpenFlow13 add-flow s1 "priority=600,ip,nw_src=$IP,nw_dst=10.0.0.2 actions=drop"
+done
+
 # --- URLLC (h5, h6 -> h2): Queue 0 on SHORT path, DSCP 46 (EF) ---
 for IP in "10.0.0.5" "10.0.0.6"; do
     sudo ovs-ofctl -O OpenFlow13 add-flow s1 "priority=500,ip,nw_src=$IP actions=set_field:46->ip_dscp,set_queue:0,output:2"
@@ -115,7 +122,7 @@ echo "[4] QoS deployment complete."
 echo ""
 echo "=== Verification ==="
 echo "--- Queues ---"
-sudo ovs-vsctl list Queue
+sudo ovs-vsctl --format=table --columns=external_ids,other_config list Queue | sort -u
 echo ""
 echo "--- Meters ---"
 sudo ovs-ofctl -O OpenFlow13 dump-meters s1

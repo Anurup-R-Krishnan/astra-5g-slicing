@@ -2,7 +2,7 @@ sudo pkill -f ryu-manager || true
 sudo pkill -f mininet || true
 sudo mn -c >/dev/null 2>&1
 
-source /home/anuruprkris/Project/ryu-env/bin/activate
+source /home/cootot/ryu-env/bin/activate
 nohup ryu-manager astra_controller.py ryu.app.ofctl_rest > ryu_bench.log 2>&1 &
 sleep 5
 
@@ -20,7 +20,7 @@ for host in h1 h2 h3 h4 h5 h6 h7 h8 h9; do
 done
 
 # Needs to run as root because it executes mnexec
-sudo /home/anuruprkris/Project/ryu-env/bin/python astra_perf.py
+sudo /home/cootot/ryu-env/bin/python astra_perf.py
 
 sudo pkill -f ryu-manager || true
 sudo pkill -f mininet || true
