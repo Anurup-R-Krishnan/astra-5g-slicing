@@ -179,21 +179,23 @@ class AstraPerfTest:
                 d = json.loads(mmtc_out)
                 r_mmtc = {
                     'mbps': d['end']['sum']['bits_per_second'] / 1e6,
-                    'loss': d['end']['sum'].get('lost_percent', 0.0)
+                    'loss': d['end']['sum'].get('lost_percent', 0.0),
+                    'jitter': d['end']['sum'].get('jitter_ms', 0.0)
                 }
             except Exception as e:
                 mmtc_proc.kill()
                 print(f"[WARN] iperf3 mMTC h9->h2 failed: {e}")
-                r_mmtc = {'mbps': 0.0, 'loss': 0.0}
+                r_mmtc = {'mbps': 0.0, 'loss': 0.0, 'jitter': 0.0}
         else:
-            r_mmtc = {'mbps': 0.0, 'loss': 0.0}
+            r_mmtc = {'mbps': 0.0, 'loss': 0.0, 'jitter': 0.0}
 
         print("  [Step 3] Measuring eMBB (h3->h1) throughput...")
         r_embb = self.iperf3('h3', 'h1', 5001, duration=10, bandwidth='80M')
+        l_embb = self.ping('h3', '10.0.0.1')
 
-        print(f"\n  URLLC (Car):  {r_urllc['mbps']:.1f} Mbps | Latency: {l_urllc['avg']:.2f}ms")
-        print(f"  eMBB (Phone): {r_embb['mbps']:.1f} Mbps")
-        print(f"  mMTC (IoT):   {r_mmtc['mbps']:.1f} Mbps | Loss: {r_mmtc['loss']:.1f}%")
+        print(f"\n  URLLC (Car):  {r_urllc['mbps']:.1f} Mbps | Latency: {l_urllc['avg']:.2f}ms | Jitter: {l_urllc['jitter']:.2f}ms")
+        print(f"  eMBB (Phone): {r_embb['mbps']:.1f} Mbps | Latency: {l_embb['avg']:.2f}ms | Jitter: {l_embb['jitter']:.2f}ms")
+        print(f"  mMTC (IoT):   {r_mmtc['mbps']:.1f} Mbps | Loss: {r_mmtc['loss']:.1f}% | Jitter: {r_mmtc['jitter']:.2f}ms")
 
         self.stop_servers()
         return {
@@ -222,7 +224,7 @@ def aggregate_results(samples):
     return aggregated
 
 if __name__ == '__main__':
-    N_REPS = 3
+    N_REPS = 1
     final_results = {}
     
     t = AstraPerfTest()
