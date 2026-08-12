@@ -117,7 +117,8 @@ echo "[4] QoS deployment complete."
 echo ""
 echo "=== Verification ==="
 echo "--- Queues ---"
-sudo ovs-vsctl --format=table --columns=external_ids,other_config list Queue | sort -uecho ""
+sudo ovs-vsctl --format=table --columns=external_ids,other_config list Queue | sort -u
+echo ""
 echo "--- Meters ---"
 sudo ovs-ofctl -O OpenFlow13 dump-meters s1
 echo ""
