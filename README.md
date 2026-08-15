@@ -1,4 +1,26 @@
+<div align="center">
+
+![Astra 5G topology](astra_5g_topology.png)
+
 # Astra Mobility 5G SDN Slicing Lab
+
+### Reproducible 5G mobility and network-slicing experiments
+
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](astra_5g_topo.py)
+[![Mininet](https://img.shields.io/badge/Mininet-network%20emulation-7B2CBF?style=for-the-badge)](astra_5g_topo.py)
+[![Open vSwitch](https://img.shields.io/badge/Open%20vSwitch-3.7%2B-2D6A4F?style=for-the-badge)](astra_qos.sh)
+[![Ryu](https://img.shields.io/badge/Ryu-SDN%20controller-E76F51?style=for-the-badge)](astra_controller.py)
+[![iperf3](https://img.shields.io/badge/iperf3-benchmark-F4A261?style=for-the-badge)](astra_perf.py)
+[![Research lab](https://img.shields.io/badge/type-research%20lab-264653?style=for-the-badge)](#known-scope)
+
+<p>
+  <a href="#architecture--slicing-design">Topology</a> ·
+  <a href="#running-the-lab">Run the lab</a> ·
+  <a href="#observed-results-performance">Results</a> ·
+  <a href="#known-scope">Scope</a>
+</p>
+
+</div>
 
 Mininet + Open vSwitch + RYU network slicing lab emulating a 5G core fabric.
 Three slices (eMBB / URLLC / mMTC) share one physical ring with slice-specific routing, queuing, and rate-limiting.
@@ -99,7 +121,7 @@ RYU is installed in a virtualenv (`/home/anuruprkris/Project/ryu-env`, Python 3.
 
 ## Running the Lab
 
-All commands run from `/home/anuruprkris/Project/sdn` as root.
+Run the commands from this repository's root directory with the privileges required by Mininet and Open vSwitch. The exact venv path is machine-specific; activate the environment where Ryu is installed.
 
 1. **Start the RYU controller** (port 6653, REST on 8080)
    ```bash
