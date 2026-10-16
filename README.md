@@ -137,7 +137,7 @@ The controller (`src/astra_controller.py`) is fully **proactive** (no MAC learni
 | IoT quarantine | Per-sensor packet rate on `s6`; a sensor above 200 pps gets a 30 s drop rule |
 
 ```bash
-sudo bash scripts/run_usecase.sh        # controller + topology + queues + healthcheck
+sudo bash scripts/run_usecase.sh        # controller + queues + interactive mininet> prompt (add --detached for the auto healthcheck)
 sudo bash scripts/healthcheck.sh        # 12 checks, PASS/FAIL
 sudo bash scripts/test_failover.sh      # cut s1<->s4, URLLC moves to the diagonal
 sudo bash scripts/test_handover.sh      # h10 s5 -> s6 -> s5
@@ -190,7 +190,7 @@ sdn/
 │   ├── astra_perf.py            # 4-phase slice performance benchmark
 │   └── astra_charts.py          # Topology and performance graph generation
 ├── scripts/                     # Automation & feature verification scripts
-│   ├── run_usecase.sh           # Master launcher (Ryu + Mininet + QoS + Healthcheck)
+│   ├── run_usecase.sh           # Master launcher (Ryu + QoS + mininet> prompt, or --detached + healthcheck)
 │   ├── healthcheck.sh           # Automated 12-point operational healthcheck suite
 │   ├── handover.sh              # 3-way UE roaming mobility utility (s5 <-> s6 <-> s7)
 │   ├── common.sh                # Shared helper functions (hexec, of)
@@ -215,10 +215,15 @@ sdn/
 
 Run all commands from the repository's root directory with the root privileges required by Mininet and Open vSwitch.
 
-### Option A: Complete Automated Execution (Recommended)
-Launch the controller, 10-switch topology, QoS queues, and run the 12-check healthcheck suite:
+### Option A: Interactive lab with the `mininet>` prompt (Recommended)
 ```bash
 sudo bash scripts/run_usecase.sh
+```
+This starts the Ryu controller and the QoS queues in the background and runs Mininet in your terminal, so you get the `mininet>` prompt (`h5 ping -c 2 h2`, `links`, `dump`, `exit`). Open a **second terminal** for the helper scripts (`sudo bash scripts/healthcheck.sh`, `scripts/test_*.sh`, `faults/inject.sh`) and for `tail -f logs/ryu.log`. Typing `exit` at the prompt stops Mininet and the controller.
+
+For a hands-off run that ends with the 12-check healthcheck (no prompt, Mininet in the background):
+```bash
+sudo bash scripts/run_usecase.sh --detached
 ```
 
 ### Option B: Troubleshooting Incident Lab
